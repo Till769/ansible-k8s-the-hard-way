@@ -1,0 +1,2 @@
+download_dir: "{{ playbook_dir }}/downloads"
+k8s_version: "v1.32.3"

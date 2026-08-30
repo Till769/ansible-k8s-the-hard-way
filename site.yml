@@ -1,0 +1,4 @@
+- name: Jumpbox aufsetzen
+  hosts: jumpbox
+  roles:
+    - jumpbox
