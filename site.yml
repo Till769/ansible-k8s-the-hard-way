@@ -2,3 +2,9 @@
   hosts: jumpbox
   roles:
     - jumpbox
+
+- name: VMs erstellen
+  hosts: jumpbox
+  roles:
+    - role: vm
+      tags: vm

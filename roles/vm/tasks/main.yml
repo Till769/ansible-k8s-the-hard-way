@@ -1,0 +1,40 @@
+- name: Download Debian 12
+  ansible.builtin.get_url:
+    url: "https://cdimage.debian.org/cdimage/archive/12.15.0/amd64/iso-cd/debian-12.15.0-amd64-netinst.iso"
+    dest: "{{ download_dir }}/debian-12.15.0-amd64.iso"
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: "0644"
+  become: true
+
+- name: libvirt Netz definieren
+  community.libvirt.virt_net:
+    command: define
+    name: br_nat
+    xml: '{{ lookup("file", "br_nat.xml") }}'
+  become: true
+
+- name: br_nat Netz starten
+  community.libvirt.virt_net:
+    command: start
+    name: br_nat
+    autostart: true
+  become: true
+
+- name: br_nat automatisch starten
+  community.libvirt.virt_net:
+    name: br_nat
+    autostart: true
+  become: true
+
+- name: Kubernetes Control Server starten
+  community.libvirt.virt_install:
+    name: server
+    memory: 2048
+    vcpus: 1
+    disks:
+      - size: 20
+    location: "{{ download_dir }}/debian-12.15.0-amd64.iso"
+    networks:
+      - network: br_nat
+  become: true
