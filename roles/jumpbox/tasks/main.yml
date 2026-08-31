@@ -15,8 +15,12 @@
     - bridge-utils
     - cpu-checker
     - libvirt-clients
+    - libvirt-dev
     - libvirt-daemon
+    - libvirt-daemon-system
+    - virtinst
     - qemu-kvm
+    - pkg-config
   become: true
 
 - name: Download-Verzeichnis anlegen
@@ -28,7 +32,7 @@
 - name: Download k8sTHW Binarys
   ansible.builtin.get_url:
     url: "{{ item }}"
-    dest: ./downloads
+    dest: "{{ download_dir }}"
     mode: "0644"
   loop:
     - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kubectl
