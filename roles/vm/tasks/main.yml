@@ -1,10 +1,16 @@
-- name: Download Debian 12
+- name: Create Image Directory in /srv
+  ansible.builtin.file:
+    path: "{{ image_dir }}"
+    state: directory
+  become: true
+
+- name: Download Debian 12 Cloud Image
   ansible.builtin.get_url:
-    url: "https://cdimage.debian.org/cdimage/archive/12.15.0/amd64/iso-cd/debian-12.15.0-amd64-netinst.iso"
-    dest: "{{ download_dir }}/debian-12.15.0-amd64.iso"
-    owner: libvirt-qemu
-    group: libvirt-qemu
+    url: "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
+    dest: "{{ image_dir }}/debian-12-generic-amd64.qcow2"
     mode: "0644"
+    owner: libvirt-qemu
+    group: kvm
   become: true
 
 - name: libvirt Netz definieren
@@ -28,13 +34,27 @@
   become: true
 
 - name: Kubernetes Control Server starten
-  community.libvirt.virt_install:
-    name: server
+  community.libvirt.virt_cloud_instance:
+    name: "{{ item }}"
     memory: 2048
     vcpus: 1
+    osinfo:
+      name: debian12
+    base_image: "{{ image_dir }}/debian-12-generic-amd64.qcow2"
     disks:
-      - size: 20
-    location: "{{ download_dir }}/debian-12.15.0-amd64.iso"
+      - path: "/var/lib/libvirt/images/{{ item }}.qcow2"
+        size: 20
+        format: qcow2
     networks:
       - network: br_nat
+    cloud_init:
+      meta_data: "{{ lookup('ansible.builtin.template', 'meta-data.yaml.j2') }}"
+      user_data: "{{ lookup('ansible.builtin.template', 'user-data.yaml.j2') }}"
+      network_config: "{{ lookup('ansible.builtin.template', 'network-config.yaml.j2') }}"
+    wait_for_cloud_init_reboot: false
+    recreate: true
+    force_disk: true
   become: true
+  vars:
+    vm: "{{ item }}"
+  loop: "{{ groups['vm'] }}"
