@@ -13,6 +13,9 @@ all:
               instance_id: server
               ansible_host: 192.168.123.10
               ansible_user: ansible
+          vars:
+            vcpus: 1
+            memory: 2048
         worker:
           hosts:
             node-0:
@@ -25,3 +28,7 @@ all:
               instance_id: node-1
               ansible_host: 192.168.123.12
               ansible_user: ansible
+          vars:
+            vcpus: 1
+            memory: 2048
+

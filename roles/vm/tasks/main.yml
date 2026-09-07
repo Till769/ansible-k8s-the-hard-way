@@ -36,8 +36,8 @@
 - name: Kubernetes VMs starten
   community.libvirt.virt_cloud_instance:
     name: "{{ item }}"
-    memory: 2048
-    vcpus: 1
+    memory: "{{ hostvars[vm].memory }}"
+    vcpus: "{{ hostvars[vm].vcpus }}"
     osinfo:
       name: debian12
     base_image: "{{ image_dir }}/debian-12-generic-amd64.qcow2"
