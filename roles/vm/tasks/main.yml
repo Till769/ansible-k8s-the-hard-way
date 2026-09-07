@@ -33,7 +33,7 @@
     autostart: true
   become: true
 
-- name: Kubernetes Control Server starten
+- name: Kubernetes VMs starten
   community.libvirt.virt_cloud_instance:
     name: "{{ item }}"
     memory: 2048
@@ -57,4 +57,13 @@
   become: true
   vars:
     vm: "{{ item }}"
+  loop: "{{ groups['vm'] }}"
+
+- name: wait for VMs
+  ansible.builtin.wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: 22
+    delay: 5
+    timeout: 300
+    state: started
   loop: "{{ groups['vm'] }}"

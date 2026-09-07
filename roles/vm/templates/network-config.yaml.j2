@@ -2,7 +2,7 @@ version: 2
 ethernets:
   enp1s0:
     addresses:
-      - {{ hostvars[vm].ip_address }}/24
+      - {{ hostvars[vm].ansible_host }}/24
     gateway4: 192.168.123.1
     nameservers:
       addresses: [192.168.123.1, 9.9.9.9]

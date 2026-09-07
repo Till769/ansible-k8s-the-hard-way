@@ -1,9 +1,10 @@
 #cloud-config
 
 users:
-  - name: ansible
+  - name: {{ hostvars[vm].ansible_user }}
     groups: [sudo]
     shell: /bin/bash
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     ssh_authorized_keys:
       - "{{ lookup('file', ssh_key) | trim }}"
+
