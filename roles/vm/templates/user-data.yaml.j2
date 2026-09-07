@@ -1,4 +1,7 @@
 #cloud-config
+hostname: {{ hostvars[vm].local_hostname }}
+fqdn: {{ hostvars[vm].local_hostname }}.{{ hostvars[vm].domain }}
+manage_etc_hosts: true
 
 users:
   - name: {{ hostvars[vm].ansible_user }}

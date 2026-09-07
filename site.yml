@@ -8,3 +8,9 @@
   roles:
     - role: vm
       tags: vm
+
+- name: VMs konfigurieren
+  hosts: vm
+  roles:
+    - role: setup
+      tags: setup

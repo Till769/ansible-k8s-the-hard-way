@@ -1,0 +1,7 @@
+- name: add hosts file to vms
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} Kubernetes The Hard Way"
+    block: "{{ lookup('template', 'hosts.j2') }}"
+    create: false
+  become: true

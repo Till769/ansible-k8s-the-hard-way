@@ -1,0 +1,3 @@
+{% for vm in groups['vm'] | sort %}
+{{ hostvars[vm].ansible_host }}   {{ hostvars[vm].local_hostname }}.{{ hostvars[vm].domain }}   {{ hostvars[vm].local_hostname }}
+{% endfor %}

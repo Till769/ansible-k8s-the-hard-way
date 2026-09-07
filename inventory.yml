@@ -23,12 +23,16 @@ all:
               instance_id: node-0
               ansible_host: 192.168.123.11
               ansible_user: ansible
+              pod_subnet: 10.200.0.0/24
             node-1:
               local_hostname: node-1
               instance_id: node-1
               ansible_host: 192.168.123.12
               ansible_user: ansible
+              pod_subnet: 10.200.0.1/24
           vars:
             vcpus: 1
             memory: 2048
+      vars:
+        domain: kubernetes.local
 
