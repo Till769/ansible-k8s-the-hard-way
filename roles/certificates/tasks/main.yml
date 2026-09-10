@@ -1,0 +1,50 @@
+- name: Create pki Directory in Playbook_dir
+  ansible.builtin.file:
+    path: "{{ pki_dir }}"
+    state: directory
+
+- name: Generate Private RSA 4096 Key
+  community.crypto.openssl_privatekey:
+    path: "{{ pki_dir }}/ca.key"
+    size: 4096
+    type: "RSA"
+
+- name: CA-Zertifikat via openssl erzeugen
+  ansible.builtin.command:
+    cmd: >
+      openssl req -x509 -new -sha512 -noenc
+      -key {{ pki_dir }}/ca.key -days 3653
+      -config {{ role_path }}/files/ca.conf
+      -out {{ pki_dir }}/ca.crt
+    creates: "{{ pki_dir }}/ca.crt"
+
+- name: Generate Private Keys for Client and Server
+  community.crypto.openssl_privatekey:
+    path: "{{ pki_dir }}/{{ item }}.key"
+    size: 4096
+    type: "RSA"
+  loop: "{{ certs }}"
+
+- name: Generate Client Certificates 
+  ansible.builtin.command:
+    cmd: >
+      openssl req -new -sha256 
+      -key {{ pki_dir }}/{{ item }}.key
+      -config {{ role_path }}/files/ca.conf
+      -section {{ item }}
+      -out {{ pki_dir }}/{{ item }}.csr
+    creates: "{{ pki_dir }}/{{ item }}.csr"
+  loop: "{{ certs }}"
+    
+- name: Generate Server Certificates
+  ansible.builtin.command:
+    cmd: >
+      openssl x509 -req -days 3653
+      -in {{ pki_dir }}/{{ item }}.csr
+      -copy_extensions copyall
+      -sha256 -CA {{ pki_dir }}/ca.crt
+      -CAkey {{ pki_dir }}/ca.key
+      -CAcreateserial
+      -out {{ pki_dir }}/{{ item }}.crt
+    creates: "{{ pki_dir }}/{{ item }}.crt"
+  loop: "{{ certs }}"

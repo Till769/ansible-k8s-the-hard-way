@@ -1,0 +1,10 @@
+pki_dir: "{{ playbook_dir }}/pki"
+certs:
+  - admin
+  - node-0
+  - node-1
+  - kube-proxy
+  - kube-scheduler
+  - kube-controller-manager
+  - kube-api-server
+  - service-accounts

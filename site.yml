@@ -14,3 +14,9 @@
   roles:
     - role: setup
       tags: setup
+
+- name: Certificate
+  hosts: jumpbox
+  roles:
+    - role: certificates
+      tags: cert

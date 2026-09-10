@@ -1,3 +1,4 @@
 kubernetes-the-hard-way/
 .venv
 downloads
+pki/
