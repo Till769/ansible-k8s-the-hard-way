@@ -26,3 +26,9 @@
   roles:
     - role: certificates_deploy
       tags: cert_deploy
+
+- name: kubeconfig generate
+  hosts: jumpbox
+  roles:
+    - role: kubeconfig
+      tags: kubeconfig

@@ -1,1 +1,2 @@
 pki_dir: "{{ playbook_dir }}/pki"
+kubeconfig_dir: "{{ playbook_dir }}/kubeconfig"

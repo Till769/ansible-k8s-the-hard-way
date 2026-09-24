@@ -1,0 +1,171 @@
+- name: Create kubeconfig Directory in Playbook_dir
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dir }}"
+    state: directory
+
+- name: set cluster in kubeconfig
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-cluster kubernetes-the-hard-way
+      --certificate-authority={{ pki_dir }}/ca.crt
+      --embed-certs=true
+      --server=https://server.kubernetes.local:6443
+      --kubeconfig={{ kubeconfig_dir }}/{{ item }}.kubeconfig
+  loop: "{{ groups['worker'] }}"
+
+- name: set credentials in kubeconfig
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-credentials system:node:{{ item }}
+      --client-certificate={{ pki_dir }}/{{ item }}.crt
+      --client-key={{ pki_dir }}/{{ item }}.key
+      --embed-certs=true
+      --kubeconfig={{ kubeconfig_dir }}/{{ item }}.kubeconfig
+  loop: "{{ groups['worker'] }}"
+
+- name: set context in kubeconfig
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-context default 
+      --cluster=kubernetes-the-hard-way 
+      --user=system:node:{{ item }} 
+      --kubeconfig={{ kubeconfig_dir }}/{{ item }}.kubeconfig
+  loop: "{{ groups['worker'] }}"
+
+- name: use context in kubeconfig
+  ansible.builtin.command:
+    cmd: >
+      kubectl config use-context default 
+      --kubeconfig={{ kubeconfig_dir }}/{{ item }}.kubeconfig
+  loop: "{{ groups['worker'] }}"
+
+- name: kube-proxy set cluster in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-cluster kubernetes-the-hard-way 
+      --certificate-authority={{ pki_dir }}/ca.crt 
+      --embed-certs=true 
+      --server=https://server.kubernetes.local:6443 
+      --kubeconfig={{ kubeconfig_dir }}/kube-proxy.kubeconfig
+
+- name: kube-proxy set credentials in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-credentials system:kube-proxy 
+      --client-certificate={{ pki_dir }}/kube-proxy.crt 
+      --client-key={{ pki_dir }}/kube-proxy.key 
+      --embed-certs=true 
+      --kubeconfig={{ kubeconfig_dir }}/kube-proxy.kubeconfig
+
+- name: kube-proxy set context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-context default 
+      --cluster=kubernetes-the-hard-way 
+      --user=system:kube-proxy 
+      --kubeconfig={{ kubeconfig_dir }}/kube-proxy.kubeconfig
+
+- name: kube-proxy use context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config use-context default 
+      --kubeconfig={{ kubeconfig_dir }}/kube-proxy.kubeconfig
+
+- name: kube-controller-manager set cluster in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-cluster kubernetes-the-hard-way 
+      --certificate-authority={{ pki_dir }}/ca.crt 
+      --embed-certs=true 
+      --server=https://server.kubernetes.local:6443 
+      --kubeconfig={{ kubeconfig_dir }}/kube-controller-manager.kubeconfig
+
+- name: kube-controller-manager set credentials in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-credentials system:kube-proxy 
+      --client-certificate={{ pki_dir }}/kube-controller-manager.crt 
+      --client-key={{ pki_dir }}/kube-controller-manager.key 
+      --embed-certs=true 
+      --kubeconfig={{ kubeconfig_dir }}/kube-controller-manager.kubeconfig
+
+- name: kube-controller-manager set context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-context default 
+      --cluster=kubernetes-the-hard-way 
+      --user=system:kube-controller-manager
+      --kubeconfig={{ kubeconfig_dir }}/kube-controller-manager.kubeconfig
+
+- name: kube-controller-manager use context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config use-context default 
+      --kubeconfig={{ kubeconfig_dir }}/kube-controller-manager.kubeconfig
+
+
+- name: kube-scheduler set cluster in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-cluster kubernetes-the-hard-way 
+      --certificate-authority={{ pki_dir }}/ca.crt 
+      --embed-certs=true 
+      --server=https://server.kubernetes.local:6443 
+      --kubeconfig={{ kubeconfig_dir }}/kube-scheduler.kubeconfig
+
+- name: kube-scheduler credentials in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-credentials system:kube-proxy 
+      --client-certificate={{ pki_dir }}/kube-scheduler.crt 
+      --client-key={{ pki_dir }}/kube-scheduler.key 
+      --embed-certs=true 
+      --kubeconfig={{ kubeconfig_dir }}/kube-scheduler.kubeconfig
+
+- name: kube-scheduler set context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-context default 
+      --cluster=kubernetes-the-hard-way 
+      --user=system:kube-scheduler
+      --kubeconfig={{ kubeconfig_dir }}/kube-scheduler.kubeconfig
+
+- name: kube-scheduler use context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config use-context default 
+      --kubeconfig={{ kubeconfig_dir }}/kube-scheduler.kubeconfig
+
+
+- name: admin set cluster in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-cluster kubernetes-the-hard-way 
+      --certificate-authority={{ pki_dir }}/ca.crt 
+      --embed-certs=true 
+      --server=https://127.0.0.1:6443
+      --kubeconfig={{ kubeconfig_dir }}/admin.kubeconfig
+
+- name: admin credentials in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-credentials system:kube-proxy 
+      --client-certificate={{ pki_dir }}/admin.crt 
+      --client-key={{ pki_dir }}/admin.key 
+      --embed-certs=true 
+      --kubeconfig={{ kubeconfig_dir }}/admin.kubeconfig
+
+- name: admin set context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config set-context default 
+      --cluster=kubernetes-the-hard-way 
+      --user=admin
+      --kubeconfig={{ kubeconfig_dir }}/admin.kubeconfig
+
+- name: admin use context in kubeconfig 
+  ansible.builtin.command:
+    cmd: >
+      kubectl config use-context default 
+      --kubeconfig={{ kubeconfig_dir }}/admin.kubeconfig
+
