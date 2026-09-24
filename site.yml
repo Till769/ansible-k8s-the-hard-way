@@ -15,8 +15,14 @@
     - role: setup
       tags: setup
 
-- name: Certificate
+- name: Certificate generate
   hosts: jumpbox
   roles:
     - role: certificates
       tags: cert
+
+- name: Certificate deploy
+  hosts: vm
+  roles:
+    - role: certificates_deploy
+      tags: cert_deploy

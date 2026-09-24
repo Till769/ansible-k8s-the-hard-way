@@ -1,4 +1,3 @@
-pki_dir: "{{ playbook_dir }}/pki"
 certs:
   - admin
   - node-0
