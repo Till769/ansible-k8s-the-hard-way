@@ -1,0 +1,36 @@
+- name: Distribute kubelet und kube-proxy kubeconfig to worker nodes
+  when: "'worker' in group_names"
+  block:
+    - name: Create /var/lib/kube-proxy directory
+      ansible.builtin.file:
+        path: /var/lib/kube-proxy
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: copy kube-proxy kubeconfig
+      ansible.builtin.copy:
+        src: "{{ kubeconfig_dir }}/kube-proxy.kubeconfig"
+        dest: /var/lib/kube-proxy/kubeconfig
+        mode: "0644"
+      become: true
+
+    - name: copy kubelet kubeconfig
+      ansible.builtin.copy:
+        src: "{{ kubeconfig_dir }}/{{ inventory_hostname }}.kubeconfig"
+        dest: /var/lib/kubelet/kubeconfig
+        mode: "0644"
+      become: true
+
+- name: DIstribute kube-controller-manager and kube-scheduler to server
+  when: "'control' in group_names"
+  block:
+    - name: Copy kube-controller-manager kubeconfig to server 
+      ansible.builtin.copy:
+        src: "{{ kubeconfig_dir }}/{{ item }}"
+        dest: "/home/{{ ansible_user }}/{{ item }}"
+        mode: "0600"
+      loop:
+        - kube-controller-manager.kubeconfig
+        - kube-scheduler.kubeconfig
+      become: true

@@ -32,3 +32,15 @@
   roles:
     - role: kubeconfig
       tags: kubeconfig
+
+- name: kubeconfig deploy
+  hosts: vm
+  roles:
+    - role: kubeconfig_deploy
+      tags: kube_deploy
+
+- name: encryption configuration
+  hosts: vm
+  roles:
+    - role: encryption_config
+      tags: encrypt_conf
