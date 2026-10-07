@@ -1,2 +1,3 @@
 pki_dir: "{{ playbook_dir }}/pki"
 kubeconfig_dir: "{{ playbook_dir }}/kubeconfig"
+download_dir: "{{ playbook_dir }}/downloads"

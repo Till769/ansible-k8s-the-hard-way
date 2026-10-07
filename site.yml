@@ -44,3 +44,10 @@
   roles:
     - role: encryption_config
       tags: encrypt_conf
+
+
+- name: bootstrap etcd
+  hosts: control
+  roles:
+    - role: etcd
+      tags: etcd
