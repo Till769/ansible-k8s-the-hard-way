@@ -1,0 +1,185 @@
+- name: copy and install kube-apiserver
+  ansible.builtin.copy:
+    src: "{{ download_dir }}/controller/kube-apiserver"
+    dest: /usr/local/bin/
+    mode: "0755"
+  become: true
+
+- name: copy and install kube-controller-manager
+  ansible.builtin.copy:
+    src: "{{ download_dir }}/controller/kube-controller-manager"
+    dest: /usr/local/bin/
+    mode: "0755"
+  become: true
+
+- name: copy and install kube-scheduler
+  ansible.builtin.copy:
+    src: "{{ download_dir }}/controller/kube-scheduler"
+    dest: /usr/local/bin/
+    mode: "0755"
+  become: true
+
+- name: copy and install kubectl
+  ansible.builtin.copy:
+    src: "{{ download_dir }}/client/kubectl"
+    dest: /usr/local/bin/
+    mode: "0755"
+  become: true
+
+- name: create /etc/kubernetes/config folder
+  ansible.builtin.file:
+    path: "/etc/kubernetes/config/"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: create /var/lib/kubernetes/ folder
+  ansible.builtin.file:
+    path: "/var/lib/kubernetes/"
+    state: directory
+    mode: "0700"
+  become: true
+
+- name: copy ca.crt
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/ca.crt"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy ca.key
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/ca.key"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy kube-api-server.key
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/kube-api-server.key"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy kube-api-server.crt
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/kube-api-server.crt"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy service-accounts.key
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/service-accounts.key"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy service-accounts.crt
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/service-accounts.crt"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy encryption-config.yaml
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/encryption-config.yaml"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy and install kube-apiserver.service
+  ansible.builtin.copy:
+    src: kube-apiserver.service
+    dest: /etc/systemd/system/
+    mode: "0755"
+  become: true
+
+- name: copy kube-controller-manager.kubeconfig
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/kube-controller-manager.kubeconfig"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy and install kube-controller-manager.service
+  ansible.builtin.copy:
+    src: kube-controller-manager.service
+    dest: /etc/systemd/system/
+    mode: "0755"
+  become: true
+
+- name: copy kube-scheduler.kubeconfig
+  ansible.builtin.copy:
+    src: "/home/{{ ansible_user }}/kube-scheduler.kubeconfig"
+    dest: /var/lib/kubernetes/
+    mode: "0644"
+    remote_src: true
+  become: true
+
+- name: copy kube-scheduler.yaml
+  ansible.builtin.copy:
+    src: kube-scheduler.yaml
+    dest: /etc/kubernetes/config/
+    mode: "0644"
+  become: true
+
+- name: copy kube-apiserver-to-kubelet.yaml
+  ansible.builtin.copy:
+    src: kube-apiserver-to-kubelet.yaml
+    dest: "/home/{{ ansible_user }}/"
+    mode: "0644"
+  become: true
+
+- name: copy and install kube-scheduler.service
+  ansible.builtin.copy:
+    src: kube-scheduler.service
+    dest: /etc/systemd/system/
+    mode: "0755"
+  become: true
+
+- name: start kube-apiserver
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    enabled: true
+    state: started
+    name: kube-apiserver.service
+  become: true
+
+- name: start kube-controller-manager
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    enabled: true
+    state: started
+    name: kube-controller-manager.service
+  become: true
+
+- name: start kube-scheduler
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    enabled: true
+    state: started
+    name: kube-scheduler.service
+  become: true
+
+- name: verification control-plane
+  ansible.builtin.shell: "kubectl cluster-info --kubeconfig /home/{{ ansible_user }}/admin.kubeconfig"
+  become: true
+
+- name: create kube-apiserver-to-kubelet ClusterRole 
+  ansible.builtin.shell: "kubectl apply -f /home/{{ ansible_user }}/kube-apiserver-to-kubelet.yaml --kubeconfig /home/{{ ansible_user }}/admin.kubeconfig"
+  become: true
+
+- name: verification control-plane from lokal
+  ansible.builtin.shell: "curl --cacert {{ pki_dir }}/ca.crt https://server.kubernetes.local:6443/version"
+  delegate_to: localhost
+  become: true

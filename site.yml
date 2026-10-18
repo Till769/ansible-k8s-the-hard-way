@@ -15,6 +15,13 @@
     - role: setup
       tags: setup
 
+- name: Setup lokal host 
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - setup
+
 - name: Certificate generate
   hosts: jumpbox
   roles:
@@ -51,3 +58,9 @@
   roles:
     - role: etcd
       tags: etcd
+
+- name: bootstrap control-plane
+  hosts: control
+  roles:
+    - role: control_plane
+      tags: control_plane

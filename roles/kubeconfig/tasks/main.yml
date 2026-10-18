@@ -149,7 +149,7 @@
 - name: admin credentials in kubeconfig 
   ansible.builtin.command:
     cmd: >
-      kubectl config set-credentials system:kube-proxy 
+      kubectl config set-credentials admin 
       --client-certificate={{ pki_dir }}/admin.crt 
       --client-key={{ pki_dir }}/admin.key 
       --embed-certs=true 

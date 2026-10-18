@@ -22,15 +22,16 @@
         mode: "0644"
       become: true
 
-- name: DIstribute kube-controller-manager and kube-scheduler to server
+- name: DIstribute kube-controller-manager, admin and kube-scheduler to server
   when: "'control' in group_names"
   block:
     - name: Copy kube-controller-manager kubeconfig to server 
       ansible.builtin.copy:
         src: "{{ kubeconfig_dir }}/{{ item }}"
         dest: "/home/{{ ansible_user }}/{{ item }}"
-        mode: "0600"
+        mode: "0644"
       loop:
         - kube-controller-manager.kubeconfig
         - kube-scheduler.kubeconfig
+        - admin.kubeconfig
       become: true

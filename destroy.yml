@@ -1,0 +1,25 @@
+- name: Remove VMs
+  hosts: jumpbox
+  tasks:
+    - name: destroy VMs (force off)
+      command: virsh destroy {{ item }}
+      loop: "{{ groups['vm'] }}"
+      register: destroy_result
+      failed_when: false
+      changed_when: destroy_result.rc == 0
+      become: true
+
+    - name: undefine VMs incl. storage and nvram
+      command: virsh undefine {{ item }} --remove-all-storage --nvram
+      loop: "{{ groups['vm'] }}"
+      register: undefine_result
+      failed_when: false
+      changed_when: undefine_result.rc == 0
+      become: true
+
+    - name: delete ssh known_host
+      command: ssh-keygen -f '/home/till/.ssh/known_hosts' -R '{{ hostvars[item].ansible_host }}'
+      loop: "{{ groups['vm'] }}"
+      register: undefine_result
+      failed_when: false
+      changed_when: undefine_result.rc == 0
