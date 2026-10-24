@@ -64,3 +64,39 @@
   roles:
     - role: control_plane
       tags: control_plane
+
+- name: bootstrap worker nodes
+  hosts: worker
+  roles:
+    - role: worker_nodes
+      tags: worker_nodes
+
+- name: verify worker 
+  hosts: control
+  tags: worker_nodes
+  tasks:
+    - name: list the kubernetes nodes
+      ansible.builtin.command: kubectl get nodes --kubeconfig /home/{{ ansible_user }}/admin.kubeconfig
+      become: true
+
+- name: provision pod network routes
+  hosts: vm
+  become: true
+  tags: routes
+  tasks:
+    - name: add routes to pod subnet of other workers
+      ansible.builtin.command:
+        cmd: >
+          ip route replace {{ hostvars[item].pod_subnet }}
+          via {{ hostvars[item].ansible_host }}
+      loop: "{{ groups['worker'] | difference([inventory_hostname]) }}"
+    - name: show routes
+      ansible.builtin.command: ip route
+      register: r
+    - ansible.builtin.debug: var=r.stdout_lines
+
+- name: smoke test
+  hosts: jumpbox
+  roles:
+    - role: smoke
+      tags: smoke

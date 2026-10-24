@@ -1,0 +1,101 @@
+- name: create secret
+  ansible.builtin.command:
+    cmd: >
+      kubectl create secret generic kubernetes-the-hard-way
+      --from-literal=mykey=mydata
+  register: secret
+  changed_when: secret.rc == 0
+  failed_when:
+    - secret.rc != 0
+    - "'already exists' not in secret.stderr"
+
+- name: read secret raw from etcd
+  ansible.builtin.shell:
+    cmd: >
+      set -o pipefail &&
+      etcdctl get /registry/secrets/default/kubernetes-the-hard-way
+      | hexdump -C
+    executable: /bin/bash
+  delegate_to: "{{ groups['control'] | first }}"
+  register: hexdump
+  changed_when: false
+
+- name: show hexdump
+  ansible.builtin.debug:
+    var: hexdump.stdout_lines
+
+- name: create nginx deployment
+  ansible.builtin.command:
+    cmd: kubectl create deployment nginx --image=nginx:latest
+  register: deploy
+  changed_when: deploy.rc == 0
+  failed_when:
+    - deploy.rc != 0
+    - "'already exists' not in deploy.stderr"
+ 
+- name: wait for nginx rollout
+  ansible.builtin.command:
+    cmd: kubectl rollout status deployment/nginx --timeout=180s
+  changed_when: false
+ 
+- name: get nginx pod name and node
+  ansible.builtin.command:
+    cmd: >
+      kubectl get pods -l app=nginx
+      -o jsonpath={.items[0].metadata.name},{.items[0].spec.nodeName}
+  register: pod_info
+  changed_when: false
+ 
+- name: set pod facts
+  ansible.builtin.set_fact:
+    pod_name: "{{ pod_info.stdout.split(',')[0] }}"
+    pod_node: "{{ pod_info.stdout.split(',')[1] }}"
+
+- name: get nginx logs
+  ansible.builtin.command:
+    cmd: kubectl logs {{ pod_name }}
+  register: logs
+  changed_when: false
+ 
+- name: nginx -v via exec
+  ansible.builtin.command:
+    cmd: kubectl exec {{ pod_name }} -- nginx -v
+  register: exec_out
+  changed_when: false
+ 
+- name: assert exec works
+  ansible.builtin.assert:
+    that: "'nginx version' in exec_out.stderr ~ exec_out.stdout"
+    success_msg: "{{ (exec_out.stderr ~ exec_out.stdout) | trim }}"
+
+- name: expose nginx as NodePort
+  ansible.builtin.command:
+    cmd: kubectl expose deployment nginx --port 80 --type NodePort
+  register: svc
+  changed_when: svc.rc == 0
+  failed_when:
+    - svc.rc != 0
+    - "'already exists' not in svc.stderr"
+ 
+- name: get node port
+  ansible.builtin.command:
+    cmd: kubectl get svc nginx -o jsonpath={.spec.ports[0].nodePort}
+  register: node_port
+  changed_when: false
+ 
+- name: HEAD request via NodePort
+  ansible.builtin.uri:
+    url: "http://{{ hostvars[pod_node].ansible_host }}:{{ node_port.stdout }}"
+    method: HEAD
+    status_code: 200
+  retries: 5
+  delay: 3
+  register: np_http
+  until: np_http.status == 200
+ 
+- name: smoke test summary
+  ansible.builtin.debug:
+    msg:
+      - "Pod:       {{ pod_name }} auf {{ pod_node }}"
+      - "NodePort:  HTTP {{ np_http.status }} via {{ hostvars[pod_node].ansible_host }}:{{ node_port.stdout }}"
+
