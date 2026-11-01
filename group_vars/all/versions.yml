@@ -4,8 +4,8 @@ components:
     version: "v3.6.0-rc.3"
     url: "https://github.com/etcd-io/etcd/releases/download/{{ components.etcd.version }}/etcd-{{ components.etcd.version }}-linux-amd64.tar.gz"
   containerd:
-    version: "v2.1.0-beta.0"
-    url: "https://github.com/containerd/containerd/releases/download/{{ components.containerd.version }}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
+    version: "2.1.0-beta.0"
+    url: "https://github.com/containerd/containerd/releases/download/v{{ components.containerd.version }}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
   cni_plugin:
     version: "v1.6.2"
     url: "https://github.com/containernetworking/plugins/releases/download/{{ components.cni_plugin.version }}/cni-plugins-linux-amd64-{{ components.cni_plugin.version }}.tgz"
