@@ -9,7 +9,7 @@
     state: latest
   become: true
 
-- name: apt install 
+- name: apt install
   ansible.builtin.apt:
     pkg:
     - bridge-utils
@@ -32,20 +32,25 @@
 - name: Download k8sTHW Binarys
   ansible.builtin.get_url:
     url: "{{ item }}"
-    dest: "{{ download_dir }}"
+    dest: "{{ download_dir }}/"
     mode: "0644"
   loop:
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kubectl
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kube-apiserver
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kube-controller-manager
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kube-scheduler
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kube-proxy
-    - https://dl.k8s.io/v1.32.3/bin/linux/amd64/kubelet
-    - https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.32.0/crictl-v1.32.0-linux-amd64.tar.gz
-    - https://github.com/opencontainers/runc/releases/download/v1.3.0-rc.1/runc.amd64
-    - https://github.com/containernetworking/plugins/releases/download/v1.6.2/cni-plugins-linux-amd64-v1.6.2.tgz
-    - https://github.com/containerd/containerd/releases/download/v2.1.0-beta.0/containerd-2.1.0-beta.0-linux-amd64.tar.gz
-    - https://github.com/etcd-io/etcd/releases/download/v3.6.0-rc.3/etcd-v3.6.0-rc.3-linux-amd64.tar.gz
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kubectl"
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-apiserver"
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-controller-manager"
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-scheduler"
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-proxy"
+    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kubelet"
+
+- name: Download component archives
+  ansible.builtin.get_url:
+    url: "{{ item.value.url }}"
+    dest: "{{ download_dir }}/"
+    mode: "0644"
+  loop: "{{ components | dict2items }}"
+  loop_control:
+    label: "{{ item.key }} {{ item.value.version }}"
+
 
 - name: Packages-Verzeichnis anlegen
   ansible.builtin.file:
@@ -60,24 +65,24 @@
 
 - name: Unarchive critcl Packages
   ansible.builtin.unarchive:
-    src: "{{ download_dir}}/crictl-v1.32.0-linux-amd64.tar.gz"
+    src: "{{ download_dir}}/crictl-{{ components.crictl.version }}-linux-amd64.tar.gz"
     dest: "{{ download_dir}}/worker"
 
 - name: Unarchive containerd Packages
   ansible.builtin.unarchive:
-    src: "{{ download_dir}}/containerd-2.1.0-beta.0-linux-amd64.tar.gz"
+    src: "{{ download_dir}}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
     dest: "{{ download_dir}}/worker"
     extra_opts:
       - --strip-components=1
 
 - name: Unarchive cni-plugin Packages
   ansible.builtin.unarchive:
-    src: "{{ download_dir}}/cni-plugins-linux-amd64-v1.6.2.tgz"
+    src: "{{ download_dir}}/cni-plugins-linux-amd64-{{ components.cni_plugin.version }}.tgz"
     dest: "{{ download_dir}}/cni-plugins"
 
 - name: Unarchive etcd Packages
   ansible.builtin.unarchive:
-    src: "{{ download_dir}}/etcd-v3.6.0-rc.3-linux-amd64.tar.gz"
+    src: "{{ download_dir}}/etcd-{{ components.etcd.version }}-linux-amd64.tar.gz"
     dest: "{{ download_dir}}"
     extra_opts:
       - --strip-components=1

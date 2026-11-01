@@ -1,7 +1,9 @@
 - name: Jumpbox aufsetzen
   hosts: jumpbox
   roles:
-    - jumpbox
+    - role: jumpbox
+      tags: jumpbox
+
 
 - name: VMs erstellen
   hosts: jumpbox
@@ -15,7 +17,7 @@
     - role: setup
       tags: setup
 
-- name: Setup lokal host 
+- name: Setup lokal host
   hosts: localhost
   connection: local
   gather_facts: false
@@ -71,7 +73,7 @@
     - role: worker_nodes
       tags: worker_nodes
 
-- name: verify worker 
+- name: verify worker
   hosts: control
   tags: worker_nodes
   tasks:

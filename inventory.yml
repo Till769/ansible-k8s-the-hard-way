@@ -13,9 +13,6 @@ all:
               instance_id: server
               ansible_host: 192.168.123.10
               ansible_user: ansible
-          vars:
-            vcpus: 1
-            memory: 2048
         worker:
           hosts:
             node-0:
@@ -30,9 +27,5 @@ all:
               ansible_host: 192.168.123.12
               ansible_user: ansible
               pod_subnet: 10.200.1.0/24
-          vars:
-            vcpus: 1
-            memory: 2048
       vars:
         domain: kubernetes.local
-

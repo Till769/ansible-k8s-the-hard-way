@@ -1,0 +1,17 @@
+k8s_version: "v1.32.3"
+components:
+  etcd:
+    version: "v3.6.0-rc.3"
+    url: "https://github.com/etcd-io/etcd/releases/download/{{ components.etcd.version }}/etcd-{{ components.etcd.version }}-linux-amd64.tar.gz"
+  containerd:
+    version: "v2.1.0-beta.0"
+    url: "https://github.com/containerd/containerd/releases/download/{{ components.containerd.version }}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
+  cni_plugin:
+    version: "v1.6.2"
+    url: "https://github.com/containernetworking/plugins/releases/download/{{ components.cni_plugin.version }}/cni-plugins-linux-amd64-{{ components.cni_plugin.version }}.tgz"
+  runc:
+    version: "v1.3.0-rc.1"
+    url: "https://github.com/opencontainers/runc/releases/download/{{ components.runc.version }}/runc.amd64"
+  crictl:
+    version: "v1.32.0"
+    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ components.crictl.version }}/crictl-{{ components.crictl.version }}-linux-amd64.tar.gz"
