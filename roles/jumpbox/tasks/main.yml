@@ -56,7 +56,7 @@
     url: "{{ item.value.url }}"
     dest: "{{ download_dir }}/{{ item.value.url | basename}}"
     mode: "0644"
-    checksum: "sha256:{{ item.value.url }}.sha256"
+    checksum: "{{ item.value.checksum_url"
   loop: "{{ components | dict2items | selectattr('value.dest', 'defined') }}"
   loop_control:
     label: "{{ item.key }} {{ item.value.version }}"
