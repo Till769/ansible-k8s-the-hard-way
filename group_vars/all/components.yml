@@ -1,0 +1,47 @@
+components:
+  etcd:
+    version: "v3.6.0-rc.3"
+    url: "https://github.com/etcd-io/etcd/releases/download/{{ components.etcd.version }}/etcd-{{ components.etcd.version }}-linux-amd64.tar.gz"
+    checksum_url: "https://github.com/etcd-io/etcd/releases/download/{{ components.etcd.version }}/SHA256SUMS"
+    extract:
+      - to: controller
+        strip_components: 1
+        include:
+          - "etcd-{{ components.etcd.version }}-linux-amd64/etcd"
+        creates: etcd
+      - to: client
+        strip_components: 1
+        include:
+          - "etcd-{{ components.etcd.version }}-linux-amd64/etcdctl"
+        creates: etcdctl
+
+  containerd:
+    version: "2.1.0-beta.0"
+    url: "https://github.com/containerd/containerd/releases/download/v{{ components.containerd.version }}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
+    checksum_url: "{{ components.containerd.url }}.sha256sum"
+    extract:
+      - to: worker
+        strip_components: 1
+        creates: containerd-shim-runc-v2
+
+  cni_plugins:
+    version: "v1.6.2"
+    url: "https://github.com/containernetworking/plugins/releases/download/{{ components.cni_plugins.version }}/cni-plugins-linux-amd64-{{ components.cni_plugins.version }}.tgz"
+    checksum_url: "{{ components.cni_plugins.url }}.sha256"
+    extract:
+      - to: cni-plugins
+        creates: bridge
+
+  crictl:
+    version: "v1.32.0"
+    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ components.crictl.version }}/crictl-{{ components.crictl.version }}-linux-amd64.tar.gz"
+    checksum_url: "{{ components.crictl.url }}.sha256"
+    extract:
+      - to: worker
+        creates: crictl
+
+  runc:
+    version: "v1.3.0-rc.1"
+    url: "https://github.com/opencontainers/runc/releases/download/{{ components.runc.version }}/runc.amd64"
+    checksum_url: "https://github.com/opencontainers/runc/releases/download/{{ components.runc.version }}/runc.sha256sum"
+    dest: worker/runc

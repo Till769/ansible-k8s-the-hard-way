@@ -1,15 +1,4 @@
-- name: apt-get update
-  ansible.builtin.apt:
-    update_cache: yes
-  become: true
-
-- name: apt upgrade
-  ansible.builtin.apt:
-    name: "*"
-    state: latest
-  become: true
-
-- name: apt install
+- name: Install virtualization packages
   ansible.builtin.apt:
     pkg:
     - bridge-utils
@@ -21,6 +10,9 @@
     - virtinst
     - qemu-kvm
     - pkg-config
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
   become: true
 
 - name: Download-Verzeichnis anlegen
@@ -28,29 +20,6 @@
     path: "{{ download_dir }}"
     state: directory
     mode: "0755"
-
-- name: Download k8sTHW Binarys
-  ansible.builtin.get_url:
-    url: "{{ item }}"
-    dest: "{{ download_dir }}/"
-    mode: "0644"
-  loop:
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kubectl"
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-apiserver"
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-controller-manager"
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-scheduler"
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kube-proxy"
-    - "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/kubelet"
-
-- name: Download component archives
-  ansible.builtin.get_url:
-    url: "{{ item.value.url }}"
-    dest: "{{ download_dir }}/"
-    mode: "0644"
-  loop: "{{ components | dict2items }}"
-  loop_control:
-    label: "{{ item.key }} {{ item.value.version }}"
-
 
 - name: Packages-Verzeichnis anlegen
   ansible.builtin.file:
@@ -62,71 +31,48 @@
     - cni-plugins
     - controller
     - worker
+    - archive
 
-- name: Unarchive critcl Packages
+- name: Download k8sTHW Binarys
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/{{ item.key }}"
+    dest: "{{ download_dir }}/{{ item.value }}/{{ item.key }}"
+    checksum: "sha256:https://dl.k8s.io/{{ k8s_version }}/bin/linux/amd64/{{ item.key }}.sha256"
+    mode: "0755"
+  loop: "{{ k8s_binaries | dict2items }}"
+
+- name: Download component archives
+  ansible.builtin.get_url:
+    url: "{{ item.value.url }}"
+    dest: "{{ download_dir }}/archive/{{ item.value.url | basename}}"
+    mode: "0644"
+    checksum: "sha256:{{ item.value.url }}.sha256"
+  loop: "{{ components | dict2items | selectattr('value.extract', 'defined') }}"
+  loop_control:
+    label: "{{ item.key }} {{ item.value.version }}"
+
+- name: Download component binaries
+  ansible.builtin.get_url:
+    url: "{{ item.value.url }}"
+    dest: "{{ download_dir }}/{{ item.value.url | basename}}"
+    mode: "0644"
+    checksum: "sha256:{{ item.value.url }}.sha256"
+  loop: "{{ components | dict2items | selectattr('value.dest', 'defined') }}"
+  loop_control:
+    label: "{{ item.key }} {{ item.value.version }}"
+
+- name: Unarchive component packages
   ansible.builtin.unarchive:
-    src: "{{ download_dir}}/crictl-{{ components.crictl.version }}-linux-amd64.tar.gz"
-    dest: "{{ download_dir}}/worker"
+    src: "{{ download_dir }}/archive/{{ item.0.value.url | basename }}"
+    dest: "{{ download_dir }}/{{ item.1.to }}"
+    include: "{{ item.1.include | default(omit) }}"
+    extra_opts: "{{ ['--strip-components=' ~ item.1.strip_components] if item.1.strip_components is defined else omit }}"
+    creates: "{{ download_dir }}/{{ item.1.to }}/{{ item.1.creates }}"
+  loop: "{{ components | dict2items | selectattr('value.extract', 'defined') | subelements('value.extract') }}"
+  loop_control:
+    label: "{{ item.0.key }} -> {{ item.1.to }}"
 
-- name: Unarchive containerd Packages
-  ansible.builtin.unarchive:
-    src: "{{ download_dir}}/containerd-{{ components.containerd.version }}-linux-amd64.tar.gz"
-    dest: "{{ download_dir}}/worker"
-    extra_opts:
-      - --strip-components=1
-
-- name: Unarchive cni-plugin Packages
-  ansible.builtin.unarchive:
-    src: "{{ download_dir}}/cni-plugins-linux-amd64-{{ components.cni_plugin.version }}.tgz"
-    dest: "{{ download_dir}}/cni-plugins"
-
-- name: Unarchive etcd Packages
-  ansible.builtin.unarchive:
-    src: "{{ download_dir}}/etcd-{{ components.etcd.version }}-linux-amd64.tar.gz"
-    dest: "{{ download_dir}}"
-    extra_opts:
-      - --strip-components=1
-
-- name: Move etcdctl Ordner
-  ansible.builtin.command: mv downloads/etcdctl downloads/client/
-
-- name: Move kubectl Ordner
-  ansible.builtin.command: mv downloads/kubectl downloads/client/
-
-- name: Move etcd Ordner
-  ansible.builtin.command: mv downloads/etcd downloads/controller/
-
-- name: Move kube-apiserver Ordner
-  ansible.builtin.command: mv downloads/kube-apiserver downloads/controller/
-
-- name: Move kube-controller-manager Ordner
-  ansible.builtin.command: mv downloads/kube-controller-manager downloads/controller/
-
-- name: Move kube-scheduler Ordner
-  ansible.builtin.command: mv downloads/kube-scheduler downloads/controller/
-
-- name: Move kubelet Ordner
-  ansible.builtin.command: mv downloads/kubelet downloads/worker/
-
-- name: Move kube-proxy Ordner
-  ansible.builtin.command: mv downloads/kube-proxy downloads/worker/
-
-- name: Move runc Ordner
-  ansible.builtin.command: mv downloads/runc.amd64 downloads/worker/runc
-
-- name: Make Binarys ausführbar
-  ansible.builtin.file:
-    path: "{{ download_dir }}/{{ item }}"
-    state: directory
-    recurse: true
-    mode: '0755'
-  loop:
-    - client
-    - cni-plugins
-    - controller
-    - worker
-
-- name: Kopiere Binary
+- name: Copy kubectl biinary
   ansible.builtin.copy:
     src: "{{ download_dir }}/client/kubectl"
     dest: /usr/local/bin

@@ -1,0 +1,8 @@
+k8s_version: "v1.32.3"
+k8s_binaries:
+  kubectl: client
+  kube-apiserver: controller
+  kube-controller-manager: controller
+  kube-scheduler: controller
+  kube-proxy: worker
+  kubelet: worker
