@@ -4,4 +4,3 @@
     marker: "# {mark} Kubernetes The Hard Way"
     block: "{{ lookup('template', 'hosts.j2') }}"
     create: false
-  become: true

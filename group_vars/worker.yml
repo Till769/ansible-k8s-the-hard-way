@@ -1,2 +1,5 @@
 vcpus: 1
 memory: 2048
+worker_sysctl:
+  net.bridge.bridge-nf-call-iptables: 1
+  net.bridge.bridge-nf-call-ip6tables: 1

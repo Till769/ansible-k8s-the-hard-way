@@ -10,12 +10,14 @@
   roles:
     - role: vm
       tags: vm
+  become: true
 
 - name: VMs konfigurieren
   hosts: vm
   roles:
     - role: setup
       tags: setup
+  become: true
 
 - name: Setup lokal host
   hosts: localhost
@@ -72,6 +74,7 @@
   roles:
     - role: worker_nodes
       tags: worker_nodes
+  become: true
 
 - name: verify worker
   hosts: control

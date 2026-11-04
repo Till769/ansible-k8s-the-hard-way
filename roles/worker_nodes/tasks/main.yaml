@@ -12,7 +12,6 @@
       - conntrack
       - ipset
       - kmod
-  become: true
 
 - name: create folders
   ansible.builtin.file:
@@ -27,7 +26,6 @@
     - /var/lib/kubernetes
     - /var/run/kubernetes
     - /etc/containerd
-  become: true
 
 - name: install crictl, kube-proxy, kubelet, runc
   ansible.builtin.copy:
@@ -39,8 +37,7 @@
     - kube-proxy
     - kubelet
     - runc
-  become: true
- 
+
 - name: install containerd containerd-shim-runc-v2 containerd-stress
   ansible.builtin.copy:
     src: "{{ download_dir }}/worker/{{ item }}"
@@ -50,79 +47,73 @@
     - containerd
     - containerd-shim-runc-v2
     - containerd-stress
-  become: true
 
 - name: install cni-plugins
   ansible.builtin.copy:
     src: "{{ download_dir }}/cni-plugins/"
     dest: /opt/cni/bin/
     mode: "0755"
-  become: true
 
 - name: write 10-bridge.conf to hosts
   ansible.builtin.template:
     src: 10-bridge.conf.j2
     dest: "/etc/cni/net.d/10-bridge.conf"
     mode: "0644"
-  become: true
 
 - name: copy 99-loopback.conf
   ansible.builtin.copy:
     src: "99-loopback.conf"
     dest: "/etc/cni/net.d/"
     mode: "0644"
-  become: true
 
-- name: load and configure br-netfilter
-  ansible.builtin.shell: |
-    modprobe br-netfilter
-    echo "br-netfilter" >> /etc/modules-load.d/modules.conf
-    echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/kubernetes.conf
-    echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.d/kubernetes.conf
-    sysctl -p /etc/sysctl.d/kubernetes.conf
-  become: true
+- name: load br-netfilter
+  community.general.modprobe:
+    name: br_netfilter
+    persistent: "present"
+
+- name: configure sysctl for kubernetes
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    reload: true
+    sysctl_file: /etc/sysctl.d/kubernetes.conf
+  loop: "{{ worker_sysctl | dict2items }}"
 
 - name: install containerd config
   ansible.builtin.copy:
     src: "containerd-config.toml"
     dest: "/etc/containerd/config.toml"
     mode: "0644"
-  become: true
 
-- name: install containerd 
+- name: install containerd
   ansible.builtin.copy:
     src: "containerd.service"
     dest: "/etc/systemd/system/"
     mode: "0755"
-  become: true
 
 - name: install kubelet config
   ansible.builtin.copy:
     src: "kubelet-config.yaml"
     dest: "/var/lib/kubelet/"
     mode: "0644"
-  become: true
 
 - name: install kubelet
   ansible.builtin.copy:
     src: "kubelet.service"
     dest: "/etc/systemd/system/"
     mode: "0755"
-  become: true
 
 - name: install kube-proxy config
   ansible.builtin.copy:
     src: "kube-proxy-config.yaml"
     dest: "/var/lib/kube-proxy/"
     mode: "0644"
-  become: true
 
 - name: install kube-proxy
   ansible.builtin.copy:
     src: "kube-proxy.service"
     dest: "/etc/systemd/system/"
     mode: "0755"
-  become: true
 
 - name: start containerd
   ansible.builtin.systemd_service:
@@ -130,7 +121,6 @@
     enabled: true
     state: started
     name: containerd.service
-  become: true
 
 - name: start kubelet
   ansible.builtin.systemd_service:
@@ -138,7 +128,6 @@
     enabled: true
     state: started
     name: kubelet.service
-  become: true
 
 - name: start kube-proxy
   ansible.builtin.systemd_service:
@@ -146,5 +135,3 @@
     enabled: true
     state: started
     name: kube-proxy.service
-  become: true
-
