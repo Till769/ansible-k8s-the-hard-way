@@ -2,7 +2,6 @@
   ansible.builtin.file:
     path: "{{ image_dir }}"
     state: directory
-  become: true
 
 - name: Download Debian 12 Cloud Image
   ansible.builtin.get_url:
@@ -11,27 +10,18 @@
     mode: "0644"
     owner: libvirt-qemu
     group: kvm
-  become: true
 
-- name: libvirt Netz definieren
+- name: Define libvirt network
   community.libvirt.virt_net:
-    command: define
     name: br_nat
+    state: present
     xml: '{{ lookup("file", "br_nat.xml") }}'
-  become: true
 
-- name: br_nat Netz starten
-  community.libvirt.virt_net:
-    command: start
-    name: br_nat
-    autostart: true
-  become: true
-
-- name: br_nat automatisch starten
+- name: Create libvirt network
   community.libvirt.virt_net:
     name: br_nat
     autostart: true
-  become: true
+    state: active
 
 - name: Kubernetes VMs starten
   community.libvirt.virt_cloud_instance:
@@ -52,9 +42,8 @@
       user_data: "{{ lookup('ansible.builtin.template', 'user-data.yaml.j2') }}"
       network_config: "{{ lookup('ansible.builtin.template', 'network-config.yaml.j2') }}"
     wait_for_cloud_init_reboot: false
-    recreate: true
-    force_disk: true
-  become: true
+    recreate: "{{ vm_recreate }}"
+    force_disk: "{{ vm_recreate }}"
   vars:
     vm: "{{ item }}"
   loop: "{{ groups['vm'] }}"
