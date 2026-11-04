@@ -2,7 +2,7 @@
   ansible.builtin.set_fact:
     encryption_key: >-
       {{ lookup('ansible.builtin.password', pki_dir + '/encryption-key', length=32) }}
-    no_log: true
+  no_log: true
   delegate_to: localhost
   run_once: true
 
@@ -20,4 +20,3 @@
     src: "{{ pki_dir }}/encryption-config.yaml"
     dest: "/home/{{ ansible_user }}/encryption-config.yaml"
     mode: "0600"
-
