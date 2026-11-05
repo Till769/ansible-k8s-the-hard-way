@@ -54,8 +54,8 @@
 - name: Download component binaries
   ansible.builtin.get_url:
     url: "{{ item.value.url }}"
-    dest: "{{ download_dir }}/{{ item.value.url | basename}}"
-    mode: "0644"
+    dest: "{{ download_dir }}/{{ item.value.dest }}"
+    mode: "0755"
     checksum: "sha256:{{ item.value.checksum_url }}"
   loop: "{{ components | dict2items | selectattr('value.dest', 'defined') }}"
   loop_control:
