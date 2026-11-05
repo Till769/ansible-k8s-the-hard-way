@@ -14,10 +14,18 @@
 
 - name: VMs konfigurieren
   hosts: vm
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Wait until VMs are reachable
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Gather facts
+      ansible.builtin.setup:
   roles:
     - role: setup
       tags: setup
-  become: true
 
 - name: Setup lokal host
   hosts: localhost
