@@ -113,3 +113,5 @@
   roles:
     - role: smoke
       tags: smoke
+  environment:
+    KUBECONFIG: "{{ kubeconfig_dir }}/admin-remote.kubeconfig"

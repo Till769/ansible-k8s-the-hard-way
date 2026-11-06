@@ -3,14 +3,14 @@
     path: "{{ kubeconfig_dir }}"
     state: directory
 
-- name: Render component kubeconfigs
+- name: Render component and remote kubeconfigs
   ansible.builtin.template:
     src: kubeconfig.yaml.j2
     dest: "{{ kubeconfig_dir }}/{{ item.name }}.kubeconfig"
     mode: "0600"
   vars:
     kc_user: "{{ item.user }}"
-    kc_cert: "{{ item.name }}"
+    kc_cert: "{{ item.cert | default(item.name) }}"
     kc_server: "{{ item.server | default(cluster_api_endpoint) }}"
   loop: "{{ kubeconfigs }}"
 
@@ -24,30 +24,3 @@
     kc_cert: "{{ item}}"
     kc_server: "{{ cluster_api_endpoint }}"
   loop: "{{ groups['worker'] }}"
-
-- name: local set cluster in kubeconfig
-  ansible.builtin.command:
-    cmd: >
-      kubectl config set-cluster kubernetes-the-hard-way
-      --certificate-authority={{ pki_dir }}/ca.crt
-      --embed-certs=true
-      --server=https://server.kubernetes.local:6443
-
-- name: local credentials in kubeconfig
-  ansible.builtin.command:
-    cmd: >
-      kubectl config set-credentials admin
-      --client-certificate={{ pki_dir }}/admin.crt
-      --client-key={{ pki_dir }}/admin.key
-
-- name: local set context in kubeconfig
-  ansible.builtin.command:
-    cmd: >
-      kubectl config set-context kubernetes-the-hard-way
-      --cluster=kubernetes-the-hard-way
-      --user=admin
-
-- name: local use context in kubeconfig
-  ansible.builtin.command:
-    cmd: >
-      kubectl config use-context kubernetes-the-hard-way
