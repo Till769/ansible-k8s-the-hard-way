@@ -1,0 +1,36 @@
+k8s_identities:
+  - name: admin
+    common_name: admin
+    organization_name: system:masters
+    extended_key_usage: [clientAuth]
+    kubeconfig:
+      server: "https://127.0.0.1:6443"
+    subject_alt_name: []
+  - name: service-accounts
+    common_name: service-accounts
+    extended_key_usage: [clientAuth]
+    subject_alt_name: []
+  - name: kube-proxy
+    common_name: system:kube-proxy
+    organization_name: system:node-proxier
+    kubeconfig: {}
+  - name: kube-controller-manager
+    common_name: system:kube-controller-manager
+    organization_name: system:kube-controller-manager
+    kubeconfig: {}
+  - name: kube-scheduler
+    common_name: system:kube-scheduler
+    organization_name: system:kube-scheduler
+    kubeconfig: {}
+  - name: kube-api-server
+    common_name: kubernetes
+    subject_alt_name:
+      - "IP:127.0.0.1"
+      - "IP:10.32.0.1"
+      - "DNS:kubernetes"
+      - "DNS:kubernetes.default"
+      - "DNS:kubernetes.default.svc"
+      - "DNS:kubernetes.default.svc.cluster"
+      - "DNS:kubernetes.svc.cluster.local"
+      - "DNS:server.kubernetes.local"
+      - "DNS:api-server.kubernetes.local"
