@@ -1,0 +1,19 @@
+cert_defaults:
+  country_name: US
+  state_or_province_name: Washington
+  locality_name: Seattle
+  basic_constraints: ["CA:FALSE"]
+  key_usage: [digitalSignature, keyEncipherment]
+  key_usage_critical: true
+  create_subject_key_identifier: true
+  extended_key_usage: [clientAuth, serverAuth]
+
+ca_config:
+  size: 4096
+  type: RSA
+  common_name: CA
+  basic_constraints: ["CA:TRUE"]
+  basic_constraints_critical: true
+  key_usage: [keyCertSign, cRLSign]
+  selfsigned_not_after: "+3653d"
+  key_usage_critical: true
